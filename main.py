@@ -34,6 +34,8 @@ def main():
     if conn is None:
         exit(1)
 
+
+
     conn.close()
 
     return
