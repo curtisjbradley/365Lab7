@@ -14,7 +14,7 @@ dataBase = "jmalpart"   # working database
 # tables in fully-qualified form
 reservations = f"{dataBase}.lab7_reservations"
 rooms = f"{dataBase}.lab7_rooms"
-
+optnsPrompt = "Command options: \n1. Print all reservations\n2. Print all rooms\n3. Exit\nPlease select option (1,2,3): "
 
 # This function prompts the user for credentials to log into the working database.
 # User must have been previously granted access by owner of the working database.
@@ -49,6 +49,7 @@ def selre_query(cursor):
         print(f"Error with SQL Query: {e}")
 
 
+
 def selro_query(cursor):
     try:
         cursor.execute(f"SELECT * from {rooms} as r")
@@ -56,12 +57,12 @@ def selro_query(cursor):
         print(f"Error with SQL Query: {e}")
 
 
+
 # initial pandas setup to display tables
 def pandas_setup():
     pd.set_option('display.max_rows', None)     # Display all rows
     pd.set_option('display.max_columns', None)  # Display all columns
     pd.set_option('display.width', None)        # No line wrapping
-
 
 # function displays information held within cursor after running a query using pandas
 def display_panda(cursor):
@@ -89,20 +90,20 @@ def main():
         conn.close()
         exit(1)
     pandas_setup()
-
+    clear_screen()
 
     replay = True
     while replay:
-        choice = input("Command options: \n1. Print all reservations\n"
-                       "2. Print all rooms\n3. Exit\nPlease select option (1,2,3): ")
+        choice = input(optnsPrompt)
+
         clear_screen()
-        if choice == "1":
+        if choice == "1": # select * from reservations
             selre_query(cursor)
             display_panda(cursor)
-        elif choice == "2":
+        elif choice == "2": # select * from rooms
             selro_query(cursor)
             display_panda(cursor)
-        elif choice == "3":
+        elif choice == "3": # exit
             replay = False
         else:
             print("Invalid input!\n")
