@@ -8,4 +8,5 @@ the app using the main.py file (subject to change). Also, it requires
 the user to install any missing dependencies.
 ## possible commands needed to resolve dependencies
 > pip3 install mysql.connector
+
 > pip3 install pandas
