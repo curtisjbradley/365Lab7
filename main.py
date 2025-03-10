@@ -1,16 +1,17 @@
 # we could make every request a function, which will hold default values set to equivalent of "Any"
 # Any could be represented as an empty string since it symbolizes no constraints at all; it could also be
 # AND TRUE within our WHERE statement.
+import os
 
-from enum import Enum
-#
 import mysql.connector
 import getpass
 from mysql.connector import Error as connError
 
 import pandas as pd
 
-dataBase = "jmalpart"                           # working database
+
+dataBase = "jmalpart"   # working database
+# tables in fully-qualified form
 reservations = f"{dataBase}.lab7_reservations"
 rooms = f"{dataBase}.lab7_rooms"
 
@@ -31,10 +32,26 @@ def create_connection():
 
     return conn
 
-def sample_query(cursor):
+
+
+# this function clears the console for visual graphics
+def clear_screen():
+    os.system('cls' if os.name == 'nt'
+              else 'clear')
+
+
+
+def selre_query(cursor):
     try:
         cursor.execute(f"SELECT * from {reservations} as r")
         #cursor.execute("SELECT * from {reservations} as r") # this leads to an exception
+    except Exception as e:
+        print(f"Error with SQL Query: {e}")
+
+
+def selro_query(cursor):
+    try:
+        cursor.execute(f"SELECT * from {rooms} as r")
     except Exception as e:
         print(f"Error with SQL Query: {e}")
 
@@ -59,12 +76,11 @@ def display_panda(cursor):
 
 
 def main():
+    # initial set up
     conn = create_connection()
-
     # failed to connect
     if conn is None:
         exit(1)
-
     # make cursor
     try:
         cursor = conn.cursor()
@@ -72,13 +88,26 @@ def main():
         print(f"Error: {err}")
         conn.close()
         exit(1)
-
     pandas_setup()
 
-    # attempt to run query
-    sample_query(cursor)
-    display_panda(cursor)
 
+    replay = True
+    while replay:
+        choice = input("Command options: \n1. Print all reservations\n"
+                       "2. Print all rooms\n3. Exit\nPlease select option (1,2,3): ")
+        clear_screen()
+        if choice == "1":
+            selre_query(cursor)
+            display_panda(cursor)
+        elif choice == "2":
+            selro_query(cursor)
+            display_panda(cursor)
+        elif choice == "3":
+            replay = False
+        else:
+            print("Invalid input!\n")
+
+    print("Exiting...")
     cursor.close()
     conn.close()
 
