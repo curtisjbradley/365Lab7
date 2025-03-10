@@ -85,17 +85,28 @@ def display_panda(cursor):
         print("No data found")
 
 
+# prints the exit animation and closes both the connection and the cursor
+def exit_seq(conn, cursor):
+    print("Closing session...")
+    cursor.close()
+    conn.close()
+
+    time.sleep(0.5)
+    print("Exiting...")
+    time.sleep(0.5)
+    clear_screen()
+
+
 
 #################
 # MAIN FUNCTION #
 #################
 def main():
     # initial set up
-    conn = create_connection()
-    # failed to connect
-    if conn is None:
+    conn = create_connection()  # log in
+    if conn is None or not conn.is_connected():    # failed to connect
         exit(1)
-    # make cursor
+
     try:
         cursor = conn.cursor()
     except Exception as err:
@@ -106,7 +117,7 @@ def main():
     clear_screen()
 
 
-    print(f"Welcome {conn.user}!")
+    print(f"Welcome {conn.user}!\n")
     replay = True
     while replay:
         choice = input(optnsPrompt)
@@ -124,15 +135,8 @@ def main():
             print("Invalid input!\n")
             time.sleep(0.5)
 
+    exit_seq(conn, cursor)
 
-    print("Closing session...")
-    cursor.close()
-    conn.close()
-
-    time.sleep(0.3)
-    print("Exiting...")
-    time.sleep(0.7)
-    clear_screen()
     return
 
 
