@@ -5,6 +5,7 @@
 # DEPENCENCIES #
 ################
 import os
+import time
 import mysql.connector
 import getpass
 from mysql.connector import Error as connError
@@ -23,9 +24,18 @@ optnsPrompt = "Command options: \n1. Print all reservations\n2. Print all rooms\
 #########################
 # FUNCTION DECLARATIONS #
 #########################
+# this function clears the console for visual graphics
+def clear_screen():
+    os.system('cls' if os.name == 'nt'
+              else 'clear')
+
+
+
 # This function prompts the user for credentials to log into the working database.
 # User must have been previously granted access by owner of the working database.
 def create_connection():
+    clear_screen()
+    print(">>> User Login <<<")
     db_user = input("Enter database username: ")
     db_password = getpass.getpass("Enter database password: ")
 
@@ -38,13 +48,6 @@ def create_connection():
         return None
 
     return conn
-
-
-
-# this function clears the console for visual graphics
-def clear_screen():
-    os.system('cls' if os.name == 'nt'
-              else 'clear')
 
 
 
@@ -67,9 +70,9 @@ def selro_query(cursor):
 
 # initial pandas setup to display tables
 def pandas_setup():
-    pd.set_option('display.max_rows', None)     # Display all rows
-    pd.set_option('display.max_columns', None)  # Display all columns
-    pd.set_option('display.width', None)        # No line wrapping
+    pd.set_option('display.max_rows', None)             # Display all rows
+    pd.set_option('display.max_columns', None)          # Display all columns
+    pd.set_option('display.width', None)                # No line wrapping
 
 # function displays information held within cursor after running a query using pandas
 def display_panda(cursor):
@@ -77,9 +80,11 @@ def display_panda(cursor):
     if len(result) > 0:
         columns = [desc[0] for desc in cursor.description] # get col descriptions
         df = pd.DataFrame(result, columns=columns)
-        print(df)
+        print(df.to_string(index=False))
     else:
         print("No data found")
+
+
 
 #################
 # MAIN FUNCTION #
@@ -100,6 +105,8 @@ def main():
     pandas_setup()
     clear_screen()
 
+
+    print(f"Welcome {conn.user}!")
     replay = True
     while replay:
         choice = input(optnsPrompt)
@@ -115,12 +122,17 @@ def main():
             replay = False
         else:
             print("Invalid input!\n")
+            time.sleep(0.5)
+
 
     print("Closing session...")
     cursor.close()
     conn.close()
 
+    time.sleep(0.3)
     print("Exiting...")
+    time.sleep(0.7)
+    clear_screen()
     return
 
 
