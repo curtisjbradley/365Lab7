@@ -2,9 +2,12 @@
 # Any could be represented as an empty string since it symbolizes no constraints at all; it could also be
 # AND TRUE within our WHERE statement.
 
+from enum import Enum
+#
 import mysql.connector
 import getpass
 from mysql.connector import Error as connError
+
 import pandas as pd
 
 dataBase = "jmalpart"                           # working database
@@ -22,8 +25,6 @@ def create_connection():
         conn = mysql.connector.connect(user=db_user, password=db_password,
                                    host='mysql.labthreesixfive.com',
                                    database=dataBase)
-        if conn.is_connected():
-            print(f"________________________\nConnected to {dataBase}.\n\n") # TODO: Remove
     except connError as e:
         print(f"Error: {e}")
         return None
@@ -37,11 +38,15 @@ def sample_query(cursor):
     except Exception as e:
         print(f"Error with SQL Query: {e}")
 
+
+# initial pandas setup to display tables
 def pandas_setup():
     pd.set_option('display.max_rows', None)     # Display all rows
     pd.set_option('display.max_columns', None)  # Display all columns
     pd.set_option('display.width', None)        # No line wrapping
 
+
+# function displays information held within cursor after running a query using pandas
 def display_panda(cursor):
     result = cursor.fetchall()
     if len(result) > 0:
@@ -50,6 +55,8 @@ def display_panda(cursor):
         print(df)
     else:
         print("No data found")
+
+
 
 def main():
     conn = create_connection()
