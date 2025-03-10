@@ -5,6 +5,7 @@
 import mysql.connector
 import getpass
 from mysql.connector import Error as connError
+import pandas as pd
 
 dataBase = "jmalpart"                           # working database
 reservations = f"{dataBase}.lab7_reservations"
@@ -36,6 +37,19 @@ def sample_query(cursor):
     except Exception as e:
         print(f"Error with SQL Query: {e}")
 
+def pandas_setup():
+    pd.set_option('display.max_rows', None)     # Display all rows
+    pd.set_option('display.max_columns', None)  # Display all columns
+    pd.set_option('display.width', None)        # No line wrapping
+
+def display_panda(cursor):
+    result = cursor.fetchall()
+    if len(result) > 0:
+        columns = [desc[0] for desc in cursor.description] # get col descriptions
+        df = pd.DataFrame(result, columns=columns)
+        print(df)
+    else:
+        print("No data found")
 
 def main():
     conn = create_connection()
@@ -52,11 +66,11 @@ def main():
         conn.close()
         exit(1)
 
+    pandas_setup()
 
     # attempt to run query
     sample_query(cursor)
-    result = cursor.fetchall()
-    print(result)
+    display_panda(cursor)
 
     cursor.close()
     conn.close()
