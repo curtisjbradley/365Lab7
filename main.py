@@ -7,6 +7,9 @@ from mysql.connector import Error as connError
 
 # working database
 dataBase = "jmalpart"
+reservations = f"{dataBase}.lab7_reservations"
+rooms = f"{dataBase}.lab7_rooms"
+
 
 # This function prompts the user for credentials to log into the working database.
 # User must have been previously granted access by owner of the working database.
@@ -26,6 +29,11 @@ def create_connection():
 
     return conn
 
+def sample_query(cursor):
+    #cursor.execute("SELECT * from {reservations} as r") # this leads to an exception
+    cursor.execute(f"SELECT * from {reservations} as r")
+
+
 
 def main():
     conn = create_connection()
@@ -34,9 +42,18 @@ def main():
     if conn is None:
         exit(1)
 
+    try:
+        # make cursor
+        cursor = conn.cursor()
 
-
-    conn.close()
+        sample_query(cursor)
+        result = cursor.fetchall()
+        print(result)
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        cursor.close()
+        conn.close()
 
     return
 
