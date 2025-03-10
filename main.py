@@ -1,21 +1,28 @@
 # we could make every request a function, which will hold default values set to equivalent of "Any"
 # Any could be represented as an empty string since it symbolizes no constraints at all; it could also be
 # AND TRUE within our WHERE statement.
+################
+# DEPENCENCIES #
+################
 import os
-
 import mysql.connector
 import getpass
 from mysql.connector import Error as connError
-
 import pandas as pd
 
-
+####################
+# GLOBAL VARIABLES #
+####################
 dataBase = "jmalpart"   # working database
 # tables in fully-qualified form
 reservations = f"{dataBase}.lab7_reservations"
 rooms = f"{dataBase}.lab7_rooms"
+
 optnsPrompt = "Command options: \n1. Print all reservations\n2. Print all rooms\n3. Exit\nPlease select option (1,2,3): "
 
+#########################
+# FUNCTION DECLARATIONS #
+#########################
 # This function prompts the user for credentials to log into the working database.
 # User must have been previously granted access by owner of the working database.
 def create_connection():
@@ -74,8 +81,9 @@ def display_panda(cursor):
     else:
         print("No data found")
 
-
-
+#################
+# MAIN FUNCTION #
+#################
 def main():
     # initial set up
     conn = create_connection()
