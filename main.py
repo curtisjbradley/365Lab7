@@ -108,10 +108,11 @@ def main():
         else:
             print("Invalid input!\n")
 
-    print("Exiting...")
+    print("Closing session...")
     cursor.close()
     conn.close()
 
+    print("Exiting...")
     return
 
 
