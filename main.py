@@ -1,12 +1,12 @@
 # we could make every request a function, which will hold default values set to equivalent of "Any"
 # Any could be represented as an empty string since it symbolizes no constraints at all; it could also be
 # AND TRUE within our WHERE statement.
+
 import mysql.connector
 import getpass
 from mysql.connector import Error as connError
 
-# working database
-dataBase = "jmalpart"
+dataBase = "jmalpart"                           # working database
 reservations = f"{dataBase}.lab7_reservations"
 rooms = f"{dataBase}.lab7_rooms"
 
@@ -22,7 +22,7 @@ def create_connection():
                                    host='mysql.labthreesixfive.com',
                                    database=dataBase)
         if conn.is_connected():
-            print(f"Connected to {dataBase}.")
+            print(f"________________________\nConnected to {dataBase}.\n\n") # TODO: Remove
     except connError as e:
         print(f"Error: {e}")
         return None
@@ -30,9 +30,11 @@ def create_connection():
     return conn
 
 def sample_query(cursor):
-    #cursor.execute("SELECT * from {reservations} as r") # this leads to an exception
-    cursor.execute(f"SELECT * from {reservations} as r")
-
+    try:
+        cursor.execute(f"SELECT * from {reservations} as r")
+        #cursor.execute("SELECT * from {reservations} as r") # this leads to an exception
+    except Exception as e:
+        print(f"Error with SQL Query: {e}")
 
 
 def main():
@@ -42,18 +44,22 @@ def main():
     if conn is None:
         exit(1)
 
+    # make cursor
     try:
-        # make cursor
         cursor = conn.cursor()
-
-        sample_query(cursor)
-        result = cursor.fetchall()
-        print(result)
-    except Exception as e:
-        print(f"Error: {e}")
-    finally:
-        cursor.close()
+    except Exception as err:
+        print(f"Error: {err}")
         conn.close()
+        exit(1)
+
+
+    # attempt to run query
+    sample_query(cursor)
+    result = cursor.fetchall()
+    print(result)
+
+    cursor.close()
+    conn.close()
 
     return
 
