@@ -1,6 +1,7 @@
 # we could make every request a function, which will hold default values set to equivalent of "Any"
 # Any could be represented as an empty string since it symbolizes no constraints at all; it could also be
 # AND TRUE within our WHERE statement.
+# use limit 5 for the no matches but show 5
 ################
 # DEPENCENCIES #
 ################
@@ -19,7 +20,8 @@ dataBase = "jmalpart"   # working database
 reservations = f"{dataBase}.lab7_reservations"
 rooms = f"{dataBase}.lab7_rooms"
 
-optnsPrompt = "Command options: \n1. Print all reservations\n2. Print all rooms\n3. Exit\nPlease select option (1,2,3): "
+optnsPrompt = str("Command options: \n1. Print all reservations\n2. Print all rooms\n3. Cancel reservation\n"
+                  + "4. Exit\nPlease select option (1,2,3,4): ")
 
 #########################
 # FUNCTION DECLARATIONS #
@@ -51,6 +53,24 @@ def create_connection():
 
 
 
+# initial pandas setup to display tables
+def pandas_setup():
+    pd.set_option('display.max_rows', None)             # Display all rows
+    pd.set_option('display.max_columns', None)          # Display all columns
+    pd.set_option('display.width', None)                # No line wrapping
+
+# function displays information held within cursor after running a query using pandas
+def display_panda(cursor):
+    result = cursor.fetchall()
+    if len(result) > 0:
+        columns = [desc[0] for desc in cursor.description] # get col descriptions
+        df = pd.DataFrame(result, columns=columns)
+        print(df.to_string(index=False) + '\n')
+    else:
+        print("No data found\n")
+
+
+
 def selre_query(cursor):
     try:
         cursor.execute(f"SELECT * from {reservations} as r")
@@ -67,22 +87,55 @@ def selro_query(cursor):
         print(f"Error with SQL Query: {e}")
 
 
+def cancel_h(cursor, code) -> bool:
+    try:
+        cursor.execute(f"DELETE from {reservations} where code = %s", [code])
+        return True
+    except Exception as e:
+        return False
 
-# initial pandas setup to display tables
-def pandas_setup():
-    pd.set_option('display.max_rows', None)             # Display all rows
-    pd.set_option('display.max_columns', None)          # Display all columns
-    pd.set_option('display.width', None)                # No line wrapping
 
-# function displays information held within cursor after running a query using pandas
-def display_panda(cursor):
-    result = cursor.fetchall()
-    if len(result) > 0:
-        columns = [desc[0] for desc in cursor.description] # get col descriptions
-        df = pd.DataFrame(result, columns=columns)
-        print(df.to_string(index=False))
-    else:
-        print("No data found")
+# function returns true if query was executed successfully, False otherwise.
+def cancelres_query(cursor) -> bool:
+    try:
+        clear_screen()
+        print(">>> User Cancel Reservations <<<")
+        resCode = input("Enter reservation code: ")
+
+        # TODO: index reservations
+        cursor.execute(f"SELECT * from {reservations} as r where r.CODE = %s", [resCode]) # indexed op
+        result = cursor.fetchall()
+        if len(result) ==  0:
+            clear_screen()
+            print(f"No reservations found under reservation code {resCode}")
+            time.sleep(1.2)
+            clear_screen()
+            return False
+        else:
+            cursor.execute(f"SELECT * from {reservations} as r where r.CODE = %s", [resCode])
+            clear_screen()
+            print("Attempting to cancel reservation:\n")
+            # print entry to be deleted
+            display_panda(cursor)
+
+            # confirm with user to cancel
+            while True:
+                answer = input("Press 1 to delete reservation or 2 to cancel the process: ")
+                if answer == "1":
+                    isSuccessful = cancel_h(cursor, resCode)
+                    clear_screen()
+                    return isSuccessful
+                if answer == "2":
+                    time.sleep(0.3)
+                    clear_screen()
+                    return False
+                else:
+                    print("Invalid input")
+                    time.sleep(0.5)
+
+    except Exception as e:
+        print(f"Error with SQL Query: {e}")
+        return False
 
 
 # prints the exit animation and closes both the connection and the cursor
@@ -129,7 +182,12 @@ def main():
         elif choice == "2": # select * from rooms
             selro_query(cursor)
             display_panda(cursor)
-        elif choice == "3": # exit
+        elif choice == "3": # cancel reservation
+            if cancelres_query(cursor):
+                print("Successfully cancelled the reservation.\n")
+            else:
+                print("Did not cancel any reservations\n")
+        elif choice == "4": # exit
             replay = False
         else:
             print("Invalid input!\n")
