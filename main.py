@@ -23,6 +23,8 @@ rooms = f"{dataBase}.lab7_rooms"
 optnsPrompt = str("Command options: \n1. Print all reservations\n2. Print all rooms\n3. Cancel reservation\n"
                   + "4. FR1 \n5. Exit\nPlease select option (1,2,3,4): ")
 
+f""
+
 #########################
 # FUNCTION DECLARATIONS #
 #########################
@@ -54,7 +56,6 @@ def create_connection():
 def fr1(cursor):
     try:
         cursor.execute(f"with popularity as (with slength as (select * , least(datediff(Checkout,Checkin), datediff(now(), checkin)) StayLength from {reservations} where (datediff(now(), Checkout) < 180) and datediff(now(), CheckIn) > 0) select Room, sum(StayLength) / 180 Popularity from slength group by Room), available as (with rs as (select Room, Checkin,Checkout from {reservations} where datediff(Checkout, now()) > 0), gaps as (select r1.Room, r1.Checkout, r2.CheckIn from rs r1 join rs r2 on r1.Checkout < r2.CheckIn and r1.Room = r2.Room where datediff(r1.CheckIn, r2.Checkout) <> 0) select Room, min(Checkout) nextAvailable  from gaps group by Room), recent as (select completed.Room Room, completed.checkout CheckoutDay, datediff({reservations}.Checkout, {reservations}.CheckIn) LengtOfMostRecentStay from (select Room, max(Checkout) checkout from {reservations} where datediff(now(), Checkout) > 0 group by Room) completed join {reservations} on {reservations}.Room = completed.Room and completed.checkout = {reservations}.Checkout) select available.Room, NextAvailable, Popularity, CheckoutDay MostRecentCheckout, LengtOfMostRecentStay from available join popularity on available.Room = popularity.Room join recent on recent.Room = available.Room;")
-        #cursor.execute("SELECT * from {reservations} as r") # this leads to an exception
     except Exception as e:
         print(f"Error with SQL Query: {e}")
 
@@ -75,8 +76,6 @@ def display_panda(cursor):
     else:
         print("No data found\n")
 
-
-
 def selre_query(cursor):
     try:
         cursor.execute(f"SELECT * from {reservations} as r")
@@ -93,12 +92,13 @@ def selro_query(cursor):
         print(f"Error with SQL Query: {e}")
 
 
+def cancel_h(cursor, code) -> bool:
+    try:
+        cursor.execute(f"DELETE from {reservations} where code = %s", [code])
+        return True
+    except Exception as e:
+        return False
 
-# initial pandas setup to display tables
-def pandas_setup():
-    pd.set_option('display.max_rows', None)             # Display all rows
-    pd.set_option('display.max_columns', None)          # Display all columns
-    pd.set_option('display.width', None)                # No line wrapping
 
 # function returns true if query was executed successfully, False otherwise.
 def cancelres_query(cursor) -> bool:
