@@ -23,7 +23,6 @@ rooms = f"{dataBase}.lab7_rooms"
 optnsPrompt = str("Command options: \n1. Print all reservations\n2. Print all rooms\n3. Cancel reservation\n"
                   + "4. FR1 \n5. Exit\nPlease select option (1,2,3,4): ")
 
-f""
 
 #########################
 # FUNCTION DECLARATIONS #
