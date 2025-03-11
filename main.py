@@ -130,6 +130,8 @@ def fr3(cursor) -> bool:
         print(f"Error with SQL Query: {e}")
         return False
 
+
+
 def details_h(cursor, args : list) -> bool:
     try:
         dateRange = args[2].split(" ")
@@ -145,7 +147,6 @@ def details_h(cursor, args : list) -> bool:
             return True
     except Exception as e:
         return False
-
 
 
 def fr4(cursor) -> bool:
@@ -259,6 +260,7 @@ def main():
             print("Invalid input!\n")
             time.sleep(0.5)
 
+    # TODO: commit changes made during runtime
     exit_seq(conn, cursor)
 
     return
