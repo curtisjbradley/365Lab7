@@ -7,6 +7,8 @@
 ################
 import os
 import time
+from time import process_time_ns
+
 import mysql.connector
 import getpass
 from mysql.connector import Error as connError
@@ -20,8 +22,8 @@ dataBase = "jmalpart"   # working database
 reservations = f"{dataBase}.lab7_reservations"
 rooms = f"{dataBase}.lab7_rooms"
 
-optnsPrompt = str("Command options: \n1. Print all reservations\n2. Print all rooms\n3. Cancel reservation\n"
-                  + "4. FR1\n5. FR5\n6. Exit\nPlease select option (1,2,3,4,5,6): ")
+optnsPrompt = str("Command options: \n1. Rooms and Rates\n2. Reservations\n3. Reservation Cancellation\n"
+                  + "4. Detailed Reservation Information\n5. Revenue\n6. Exit\nPlease select option (1,2,3,4,5,6): ")
 
 
 #########################
@@ -52,17 +54,7 @@ def create_connection():
 
     return conn
 
-def fr1(cursor):
-    try:
-        cursor.execute(f"with popularity as (with slength as (select * , least(datediff(Checkout,Checkin), datediff(now(), checkin)) StayLength from {reservations} where (datediff(now(), Checkout) < 180) and datediff(now(), CheckIn) > 0) select Room, sum(StayLength) / 180 Popularity from slength group by Room), available as (with rs as (select Room, Checkin,Checkout from {reservations} where datediff(Checkout, now()) > 0), gaps as (select r1.Room, r1.Checkout, r2.CheckIn from rs r1 join rs r2 on r1.Checkout < r2.CheckIn and r1.Room = r2.Room where datediff(r1.CheckIn, r2.Checkout) <> 0) select Room, min(Checkout) nextAvailable  from gaps group by Room), recent as (select completed.Room Room, completed.checkout CheckoutDay, datediff({reservations}.Checkout, {reservations}.CheckIn) LengtOfMostRecentStay from (select Room, max(Checkout) checkout from {reservations} where datediff(now(), Checkout) > 0 group by Room) completed join {reservations} on {reservations}.Room = completed.Room and completed.checkout = {reservations}.Checkout) select available.Room, NextAvailable, Popularity, CheckoutDay MostRecentCheckout, LengtOfMostRecentStay from available join popularity on available.Room = popularity.Room join recent on recent.Room = available.Room;")
-    except Exception as e:
-        print(f"Error with SQL Query: {e}")
 
-def fr5(cursor):
-        try:
-            cursor.execute(f"with Rev as (select Room, Sum(if(checkin < '2025-01-01', greatest(datediff(LEAST(checkout, '2025-02-01'), '2025-01-01'), 0), if(checkout >= '2025-02-01', greatest(DateDiff('2025-02-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) January, Sum(if(checkin < '2025-02-01', greatest(datediff(LEAST(checkout, '2025-03-01'), '2025-02-01'), 0), if(checkout >= '2025-03-01', greatest(DateDiff('2025-03-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) February, Sum(if(checkin < '2025-03-01', greatest(datediff(LEAST(checkout, '2025-04-01'), '2025-03-01'), 0), if(checkout >= '2025-04-01', greatest(DateDiff('2025-04-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) March, Sum(if(checkin < '2025-04-01', greatest(datediff(LEAST(checkout, '2025-05-01'), '2025-04-01'), 0), if(checkout >= '2025-05-01', greatest(DateDiff('2025-05-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) April, Sum(if(checkin < '2025-05-01', greatest(datediff(LEAST(checkout, '2025-06-01'), '2025-05-01'), 0), if(checkout >= '2025-06-01', greatest(DateDiff('2025-06-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) May, Sum(if(checkin < '2025-06-01', greatest(datediff(LEAST(checkout, '2025-07-01'), '2025-06-01'), 0), if(checkout >= '2025-07-01', greatest(DateDiff('2025-07-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) June, Sum(if(checkin < '2025-07-01', greatest(datediff(LEAST(checkout, '2025-08-01'), '2025-07-01'), 0), if(checkout >= '2025-08-01', greatest(DateDiff('2025-08-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) July, Sum(if(checkin < '2025-08-01', greatest(datediff(LEAST(checkout, '2025-09-01'), '2025-08-01'), 0), if(checkout >= '2025-09-01', greatest(DateDiff('2025-09-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) August, Sum(if(checkin < '2025-09-01', greatest(datediff(LEAST(checkout, '2025-10-01'), '2025-09-01'), 0), if(checkout >= '2025-10-01', greatest(DateDiff('2025-10-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) September, Sum(if(checkin < '2025-10-01', greatest(datediff(LEAST(checkout, '2025-11-01'), '2025-10-01'), 0), if(checkout >= '2025-11-01', greatest(DateDiff('2025-11-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) October, Sum(if(checkin < '2025-11-01', greatest(datediff(LEAST(checkout, '2025-12-01'), '2025-11-01'), 0), if(checkout >= '2025-12-01', greatest(DateDiff('2025-12-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) November, Sum(if(checkin < '2025-12-01', greatest(datediff(LEAST(checkout, '2026-01-01'), '2025-12-01'), 0), if(checkout >= '2026-01-01', greatest(DateDiff('2026-01-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) December from {reservations} group by Room) (select * from Rev order by Room) union select 'Total', Sum(January), Sum(February), Sum(March), Sum(April), SUM(May), SUm(June), Sum(July), Sum(August), Sum(September), SUM(October), Sum(November), SUM(December) from Rev")
-        except Exception as e:
-            print(f"Error with SQL Query: {e}")
 
 # initial pandas setup to display tables
 def pandas_setup():
@@ -80,20 +72,14 @@ def display_panda(cursor):
     else:
         print("No data found\n")
 
-def selre_query(cursor):
+
+
+def fr1(cursor):
     try:
-        cursor.execute(f"SELECT * from {reservations} as r")
-        #cursor.execute("SELECT * from {reservations} as r") # this leads to an exception
+        cursor.execute(f"with popularity as (with slength as (select * , least(datediff(Checkout,Checkin), datediff(now(), checkin)) StayLength from {reservations} where (datediff(now(), Checkout) < 180) and datediff(now(), CheckIn) > 0) select Room, sum(StayLength) / 180 Popularity from slength group by Room), available as (with rs as (select Room, Checkin,Checkout from {reservations} where datediff(Checkout, now()) > 0), gaps as (select r1.Room, r1.Checkout, r2.CheckIn from rs r1 join rs r2 on r1.Checkout < r2.CheckIn and r1.Room = r2.Room where datediff(r1.CheckIn, r2.Checkout) <> 0) select Room, min(Checkout) nextAvailable  from gaps group by Room), recent as (select completed.Room Room, completed.checkout CheckoutDay, datediff({reservations}.Checkout, {reservations}.CheckIn) LengtOfMostRecentStay from (select Room, max(Checkout) checkout from {reservations} where datediff(now(), Checkout) > 0 group by Room) completed join {reservations} on {reservations}.Room = completed.Room and completed.checkout = {reservations}.Checkout) select available.Room, NextAvailable, Popularity, CheckoutDay MostRecentCheckout, LengtOfMostRecentStay from available join popularity on available.Room = popularity.Room join recent on recent.Room = available.Room;")
     except Exception as e:
         print(f"Error with SQL Query: {e}")
 
-
-
-def selro_query(cursor):
-    try:
-        cursor.execute(f"SELECT * from {rooms} as r")
-    except Exception as e:
-        print(f"Error with SQL Query: {e}")
 
 
 def cancel_h(cursor, code) -> bool:
@@ -103,15 +89,13 @@ def cancel_h(cursor, code) -> bool:
     except Exception as e:
         return False
 
-
 # function returns true if query was executed successfully, False otherwise.
-def cancelres_query(cursor) -> bool:
+def fr3(cursor) -> bool:
     try:
         clear_screen()
         print(">>> User Cancel Reservations <<<")
         resCode = input("Enter reservation code: ")
 
-        # TODO: index reservations
         cursor.execute(f"SELECT * from {reservations} as r where r.CODE = %s", [resCode]) # indexed op
         result = cursor.fetchall()
         if len(result) ==  0:
@@ -145,6 +129,71 @@ def cancelres_query(cursor) -> bool:
     except Exception as e:
         print(f"Error with SQL Query: {e}")
         return False
+
+def details_h(cursor, args : list) -> bool:
+    try:
+        dateRange = args[2].split(" ")
+        if len(dateRange) == 1:
+            param = [args[0], args[1], args[3], args[4]]
+            cursor.execute(f"select * from {reservations} r where FirstName like %s and LastName like %s and Room like %s and CODE like %s",
+                       param)
+            return True
+        else:
+            param = [args[0], args[1], dateRange[0], dateRange[1], dateRange[0], dateRange[1], args[3], args[4]]
+            cursor.execute(f"select * from {reservations} r where FirstName like %s and LastName like %s and (CheckIn between %s and %s or Checkout between %s and %s) and Room like %s and CODE like %s",
+                           param)
+            return True
+    except Exception as e:
+        return False
+
+
+
+def fr4(cursor) -> bool:
+    args = []
+    for i in range(5):
+        args.append("")
+    print(">>> Detailed Reservation Information <<<")
+    print("Please enter the following details:\n")
+    args[0] = input("First Name: ")
+    args[1] = input("Last Name: ")
+    args[2] = input("Range of Dates (separated by space): ")
+    args[3] = input("Room code: ")
+    args[4] = input("Reservation code: ")
+
+    # cannot have %
+    if '%' in args[2] or '%' in args[3]:
+        clear_screen()
+        print("Invalid input. Both date ranges and the room code have to be complete")
+        time.sleep(1.5)
+        clear_screen()
+        return False
+
+    dateRange = args[2].split(" ")
+    if len(dateRange) != 2 and len(args[2]) != 0:
+        clear_screen()
+        print("Invalid input. You need to either provide no date or a range")
+        time.sleep(1.5)
+        clear_screen()
+        return False
+
+    # convert empty filters into wildcards
+    for i in range(len(args)):
+        if args[i] == '':
+            args[i] = '%'
+
+    isSuccessful = details_h(cursor, args)
+    clear_screen()
+    return isSuccessful
+
+
+
+def fr5(cursor):
+    try:
+        cursor.execute(
+            f"with Rev as (select Room, Sum(if(checkin < '2025-01-01', greatest(datediff(LEAST(checkout, '2025-02-01'), '2025-01-01'), 0), if(checkout >= '2025-02-01', greatest(DateDiff('2025-02-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) January, Sum(if(checkin < '2025-02-01', greatest(datediff(LEAST(checkout, '2025-03-01'), '2025-02-01'), 0), if(checkout >= '2025-03-01', greatest(DateDiff('2025-03-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) February, Sum(if(checkin < '2025-03-01', greatest(datediff(LEAST(checkout, '2025-04-01'), '2025-03-01'), 0), if(checkout >= '2025-04-01', greatest(DateDiff('2025-04-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) March, Sum(if(checkin < '2025-04-01', greatest(datediff(LEAST(checkout, '2025-05-01'), '2025-04-01'), 0), if(checkout >= '2025-05-01', greatest(DateDiff('2025-05-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) April, Sum(if(checkin < '2025-05-01', greatest(datediff(LEAST(checkout, '2025-06-01'), '2025-05-01'), 0), if(checkout >= '2025-06-01', greatest(DateDiff('2025-06-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) May, Sum(if(checkin < '2025-06-01', greatest(datediff(LEAST(checkout, '2025-07-01'), '2025-06-01'), 0), if(checkout >= '2025-07-01', greatest(DateDiff('2025-07-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) June, Sum(if(checkin < '2025-07-01', greatest(datediff(LEAST(checkout, '2025-08-01'), '2025-07-01'), 0), if(checkout >= '2025-08-01', greatest(DateDiff('2025-08-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) July, Sum(if(checkin < '2025-08-01', greatest(datediff(LEAST(checkout, '2025-09-01'), '2025-08-01'), 0), if(checkout >= '2025-09-01', greatest(DateDiff('2025-09-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) August, Sum(if(checkin < '2025-09-01', greatest(datediff(LEAST(checkout, '2025-10-01'), '2025-09-01'), 0), if(checkout >= '2025-10-01', greatest(DateDiff('2025-10-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) September, Sum(if(checkin < '2025-10-01', greatest(datediff(LEAST(checkout, '2025-11-01'), '2025-10-01'), 0), if(checkout >= '2025-11-01', greatest(DateDiff('2025-11-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) October, Sum(if(checkin < '2025-11-01', greatest(datediff(LEAST(checkout, '2025-12-01'), '2025-11-01'), 0), if(checkout >= '2025-12-01', greatest(DateDiff('2025-12-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) November, Sum(if(checkin < '2025-12-01', greatest(datediff(LEAST(checkout, '2026-01-01'), '2025-12-01'), 0), if(checkout >= '2026-01-01', greatest(DateDiff('2026-01-01', Checkin), 0), datediff(Checkout, Checkin))) * Rate) December from {reservations} group by Room) (select * from Rev order by Room) union select 'Total', Sum(January), Sum(February), Sum(March), Sum(April), SUM(May), SUm(June), Sum(July), Sum(August), Sum(September), SUM(October), Sum(November), SUM(December) from Rev")
+    except Exception as e:
+        print(f"Error with SQL Query: {e}")
+
 
 
 # prints the exit animation and closes both the connection and the cursor
@@ -185,24 +234,26 @@ def main():
         choice = input(optnsPrompt)
 
         clear_screen()
-        if choice == "1": # select * from reservations
-            selre_query(cursor)
+        if choice == "1": # Rooms and Rates
+            fr1(cursor)
             display_panda(cursor)
-        elif choice == "2": # select * from rooms
-            selro_query(cursor)
-            display_panda(cursor)
-        elif choice == "3": # cancel reservation
-            if cancelres_query(cursor):
+        elif choice == "2": # Reservations
+            #fr2(cursor)
+            #display_panda(cursor)
+            print("Not implemented yet")
+        elif choice == "3": # Reservation Cancellation
+            if fr3(cursor):
                 print("Successfully cancelled the reservation.\n")
             else:
                 print("Did not cancel any reservations\n")
-        elif choice == "4":
-                    fr1(cursor)
-                    display_panda(cursor)
-        elif choice == "5":
-                            fr5(cursor)
-                            display_panda(cursor)
-        elif choice == "6": # exit
+        elif choice == "4": # Detailed Reservation Information
+            if fr4(cursor):
+                print("Retrieved the following reservations:\n")
+            display_panda(cursor)
+        elif choice == "5": # Revenue
+            fr5(cursor)
+            display_panda(cursor)
+        elif choice == "6": # Exit
             replay = False
         else:
             print("Invalid input!\n")
