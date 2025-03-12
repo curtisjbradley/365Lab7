@@ -116,18 +116,18 @@ def fr2(cursor):
                     %s as endDate,
                     %s as totalGuests
                 From dual
-            ),
-            Occupied as (
-                Select Room 
-                From {reservations} 
-                Where not (Checkout <= (select beginDate from requested) or CheckIn >= (select endDate from requested))
             )
             Select r.RoomCode, r.RoomName, r.Beds, r.bedType, r.maxOcc, r.basePrice, r.decor
-            From {rooms} r, requested
-            Where ((requested.desiredRoom = 'Any') or (r.RoomCode = requested.desiredRoom))
-            and ((requested.desiredBedType = 'Any') or (r.bedType = requested.desiredBedType))
-            and r.maxOcc >= (select totalGuests from requested)
-            and r.RoomCode not in (select Room from occupied);
+            From {rooms} r
+            Join requested on 1 = 1 
+            Where (requested.desiredRoom = 'Any' or r.RoomCode = requested.desiredRoom)
+              and (requested.desiredBedType = 'Any' or r.bedType = requested.desiredBedType)
+              and r.maxOcc >= requested.totalGuests
+              and r.RoomCode not in (
+                  Select Room from {reservations}
+                  Join requested on 1=1
+                  Where not (Checkout <= requested.beginDate or CheckIn >= requested.endDate)
+              );
         """
         params_exact = (desired_room, desired_bedtype, begin_date, end_date, total_ppl)
         cursor.execute(exact_sql, params_exact)
@@ -148,15 +148,19 @@ def fr2(cursor):
                         %s as endDate,
                         %s as totalGuests
                     From dual
-                ),
-                Occupied as (
-                    Select Room 
-                    From {reservations} 
-                    Where not (Checkout <= date_sub((select beginDate from requested), interval 3 day) or CheckIn >= date_add((select endDate from requested), interval 3 day))
                 )
                 Select r.RoomCode, r.RoomName, r.Beds, r.bedType, r.maxOcc, r.basePrice, r.decor
-                From {rooms} r, requested
-                Where r.maxOcc >= (select totalGuests from requested) and r.RoomCode not in (select Room from occupied)
+                From {rooms} r
+                Join requested on 1 = 1
+                Where (requested.desiredRoom = 'Any' or r.RoomCode = requested.desiredRoom)
+                and (requested.desiredBedType = 'Any' or r.bedType = requested.desiredBedType)
+                and r.maxOcc >= requested.totalGuests
+                and r.RoomCode not in (
+                    Select Room
+                    From {reservations}
+                    Join requested on 1 = 1
+                    Where not (Checkout <= DATE_SUB(requested.beginDate, INTERVAL 3 DAY) or CheckIn >= DATE_ADD(requested.endDate, INTERVAL 3 DAY))
+                )
                 Order by r.basePrice asc
                 Limit 5;
             """
