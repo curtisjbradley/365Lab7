@@ -61,6 +61,7 @@ def pandas_setup():
     pd.set_option('display.max_rows', None)             # Display all rows
     pd.set_option('display.max_columns', None)          # Display all columns
     pd.set_option('display.width', None)                # No line wrapping
+    pd.options.display.colheader_justify = 'left'       # ensure cols left-align
 
 # function displays information held within cursor after running a query using pandas
 def display_panda(cursor):
@@ -80,24 +81,31 @@ def fr1(cursor):
     except Exception as e:
         print(f"Error with SQL Query: {e}")
 
-def fr2(cursor):
+def fr2(cursor) -> bool:
     try:
         clear_screen()
         print(">>> Make New Reservation <<<\n")
         
         # 1. Collect user input
-        first_name = input("First name: ").strip()
-        last_name = input("Last name: ").strip()
-        desired_room = input("Room code (or press Enter for 'Any'): ").strip()
-        desired_bedtype = input("Bed type (or press Enter for 'Any'): ").strip()
-        begin_date = input("Begin date (YYYY-MM-DD): ").strip()
-        end_date = input("End date (YYYY-MM-DD): ").strip()
+        first_name = input("First name: ")
+        last_name = input("Last name: ")
+        desired_room = input("Room code (or press Enter for 'Any'): ")
+        desired_bedtype = input("Bed type (or press Enter for 'Any'): ")
+        begin_date = input("Begin date (YYYY-MM-DD): ")
+        end_date = input("End date (YYYY-MM-DD): ")
         try:
-            adults = int(input("Number of adults: ").strip())
-            kids = int(input("Number of kids: ").strip())
+            adults = int(input("Number of adults: "))
+            kids = int(input("Number of kids: "))
+            clear_screen()
+            # cannot have a reservation with 0 people
+            if adults + kids == 0:
+                raise ValueError
         except ValueError:
+            clear_screen()
             print("Invalid number entered for adults or kids. Reservation cancelled.")
-            return
+            time.sleep(1.2)
+            clear_screen()
+            return False
         
         if desired_room == "":
             desired_room = "Any"
@@ -119,13 +127,13 @@ def fr2(cursor):
             )
             Select r.RoomCode, r.RoomName, r.Beds, r.bedType, r.maxOcc, r.basePrice, r.decor
             From {rooms} r
-            Join requested on 1 = 1 
+            Join requested
             Where (requested.desiredRoom = 'Any' or r.RoomCode = requested.desiredRoom)
               and (requested.desiredBedType = 'Any' or r.bedType = requested.desiredBedType)
               and r.maxOcc >= requested.totalGuests
               and r.RoomCode not in (
                   Select Room from {reservations}
-                  Join requested on 1=1
+                  Join requested
                   Where not (Checkout <= requested.beginDate or CheckIn >= requested.endDate)
               );
         """
@@ -135,9 +143,8 @@ def fr2(cursor):
         
         if len(exact_results) > 0:
             results_list = exact_results
-            print("Matches found:\n")
+            print("Matches found:\n\n")
         else:
-            print("No exact matches found. Showing up to 5 similar suggestions...\n")
             # 3. Execute the Similar Suggestions Query (with relaxed date window by 3 days)
             similar_sql = f"""
                 With requested as (
@@ -151,14 +158,14 @@ def fr2(cursor):
                 )
                 Select r.RoomCode, r.RoomName, r.Beds, r.bedType, r.maxOcc, r.basePrice, r.decor
                 From {rooms} r
-                Join requested on 1 = 1
+                Join requested
                 Where (requested.desiredRoom = 'Any' or r.RoomCode = requested.desiredRoom)
                 and (requested.desiredBedType = 'Any' or r.bedType = requested.desiredBedType)
                 and r.maxOcc >= requested.totalGuests
                 and r.RoomCode not in (
                     Select Room
                     From {reservations}
-                    Join requested on 1 = 1
+                    Join requested
                     Where not (Checkout <= DATE_SUB(requested.beginDate, INTERVAL 3 DAY) or CheckIn >= DATE_ADD(requested.endDate, INTERVAL 3 DAY))
                 )
                 Order by r.basePrice asc
@@ -168,28 +175,38 @@ def fr2(cursor):
             cursor.execute(similar_sql, params_similar)
             similar_results = cursor.fetchall()
             if len(similar_results) == 0:
-                print("Cannot make reservation.\n")
-                return
+                clear_screen()
+                print("Cannot make the reservation.\n")
+                clear_screen()
+                time.sleep(1)
+                return False
             results_list = similar_results
+            print("No exact matches found. Showing up to 5 similar suggestions:\n\n")
         
         # 4. Display available rooms via pandas so the user can select one
-        columns = [desc[0] for desc in cursor.description]
-        df = pd.DataFrame(results_list, columns=columns)
-        print(df.to_string(index=True))
-        print()
-        choice = input("Enter the row number to book (or 'C' to cancel): ").strip()
-        if choice.lower() == 'c':
-            clear_screen()
-            print("Reservation cancelled.\n")
-            return
-        try:
-            choice_idx = int(choice)
-            if choice_idx < 0 or choice_idx >= len(results_list):
-                print("Invalid row number. Reservation cancelled.")
-                return
-        except ValueError:
-            print("Invalid input. Reservation cancelled.")
-            return
+        while True:
+            columns = [desc[0] for desc in cursor.description]
+            df = pd.DataFrame(results_list, columns=columns)
+            print(df.to_string(index=True) + "\n")
+            choice = input("Enter the row number to book (or 'C' to cancel): ")
+            if choice.lower() == 'c':
+                clear_screen()
+                print("Reservation cancelled.\n")
+                time.sleep(1)
+                clear_screen()
+                return False
+            try:
+                choice_idx = int(choice)
+                if choice_idx < 0 or choice_idx >= len(results_list):
+                    raise ValueError
+                break   # valid input
+            except ValueError:
+                clear_screen()
+                print("Invalid input!")
+                time.sleep(0.7)
+                clear_screen()
+        # end of while
+
         
         chosen_room = results_list[choice_idx]
         # Expecting: (RoomCode, RoomName, Beds, bedType, maxOcc, basePrice, decor)
@@ -237,9 +254,11 @@ def fr2(cursor):
                          last_name, first_name, adults, kids,
                          room_code)
         cursor.execute(insert_sql, params_insert)
-        
+
     except Exception as e:
-        print(f"Error with SQL Query: {e}")
+        print(f"SQL: {e}")
+        time.sleep(4)
+        clear_screen()
         return False
 
     clear_screen()
@@ -307,18 +326,19 @@ def details_h(cursor, args : list) -> bool:
         dateRange = args[2].split(" ")
         if len(dateRange) == 1:
             param = [args[0], args[1], args[3], args[4]]
-            cursor.execute(f"select * from {reservations} r where FirstName like %s and LastName like %s and Room like %s and CODE like %s",
+            cursor.execute(f"select ro.RoomName, r.* from {reservations} r join {rooms} ro on r.Room = ro.RoomCode where FirstName like %s and LastName like %s and Room like %s and CODE like %s",
                        param)
             return True
         else:
             param = [args[0], args[1], dateRange[0], dateRange[1], dateRange[0], dateRange[1], args[3], args[4]]
-            cursor.execute(f"select * from {reservations} r where FirstName like %s and LastName like %s and (CheckIn between %s and %s or Checkout between %s and %s) and Room like %s and CODE like %s",
+            cursor.execute(f"select ro.RoomName, r.* from {reservations} r join {rooms} ro on r.Room = ro.RoomCode where FirstName like %s and LastName like %s and (CheckIn between %s and %s or Checkout between %s and %s) and Room like %s and CODE like %s",
                            param)
             return True
     except Exception as e:
         return False
 
 
+# TODO: cross with room to get room name
 def fr4(cursor) -> bool:
     args = []
     for i in range(5):
@@ -409,9 +429,10 @@ def main():
             fr1(cursor)
             display_panda(cursor)
         elif choice == "2": # Reservations
-            fr2(cursor)
-            display_panda(cursor)
-            # print("yes")
+            if fr2(cursor):
+                display_panda(cursor)
+            else:
+                print("Did not finalize the reservation.\n")
         elif choice == "3": # Reservation Cancellation
             if fr3(cursor):
                 print("Successfully cancelled the reservation.\n")
