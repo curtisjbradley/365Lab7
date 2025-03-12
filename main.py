@@ -80,6 +80,172 @@ def fr1(cursor):
     except Exception as e:
         print(f"Error with SQL Query: {e}")
 
+def fr2(cursor):
+    try:
+        clear_screen()
+        print(">>> Make New Reservation <<<\n")
+        
+        # 1. Collect user input
+        first_name = input("First name: ").strip()
+        last_name = input("Last name: ").strip()
+        desired_room = input("Room code (or press Enter for 'Any'): ").strip()
+        desired_bedtype = input("Bed type (or press Enter for 'Any'): ").strip()
+        begin_date = input("Begin date (YYYY-MM-DD): ").strip()
+        end_date = input("End date (YYYY-MM-DD): ").strip()
+        try:
+            adults = int(input("Number of adults: ").strip())
+            kids = int(input("Number of kids: ").strip())
+        except ValueError:
+            print("Invalid number entered for adults or kids. Reservation cancelled.")
+            return
+        
+        if desired_room == "":
+            desired_room = "Any"
+        if desired_bedtype == "":
+            desired_bedtype = "Any"
+        total_ppl = adults + kids
+
+        # 2. Execute the Exact Match Query using a WITH clause
+        # (Using parameterized values instead of literal placeholders.)
+        exact_sql = f"""
+            With requested as (
+                Select 
+                    %s as desiredRoom,
+                    %s as desiredBedType,
+                    %s as beginDate,
+                    %s as endDate,
+                    %s as totalGuests
+                From dual
+            ),
+            Occupied as (
+                Select Room 
+                From {reservations} 
+                Where not (Checkout <= (select beginDate from requested) or CheckIn >= (select endDate from requested))
+            )
+            Select r.RoomCode, r.RoomName, r.Beds, r.bedType, r.maxOcc, r.basePrice, r.decor
+            From {rooms} r, requested
+            Where ((requested.desiredRoom = 'Any') or (r.RoomCode = requested.desiredRoom))
+            and ((requested.desiredBedType = 'Any') or (r.bedType = requested.desiredBedType))
+            and r.maxOcc >= (select totalGuests from requested)
+            and r.RoomCode not in (select Room from occupied);
+        """
+        params_exact = (desired_room, desired_bedtype, begin_date, end_date, total_ppl)
+        cursor.execute(exact_sql, params_exact)
+        exact_results = cursor.fetchall()
+        
+        if len(exact_results) > 0:
+            results_list = exact_results
+            print("Matches found:\n")
+        else:
+            print("No exact matches found. Showing up to 5 similar suggestions...\n")
+            # 3. Execute the Similar Suggestions Query (with relaxed date window by 3 days)
+            similar_sql = f"""
+                With requested as (
+                    Select 
+                        %s as desiredRoom,
+                        %s as desiredBedType,
+                        %s as beginDate,
+                        %s as endDate,
+                        %s as totalGuests
+                    From dual
+                ),
+                Occupied as (
+                    Select Room 
+                    From {reservations} 
+                    Where not (Checkout <= date_sub((select beginDate from requested), interval 3 day) or CheckIn >= date_add((select endDate from requested), interval 3 day))
+                )
+                Select r.RoomCode, r.RoomName, r.Beds, r.bedType, r.maxOcc, r.basePrice, r.decor
+                From {rooms} r, requested
+                Where r.maxOcc >= (select totalGuests from requested) and r.RoomCode not in (select Room from occupied)
+                Order by r.basePrice asc
+                Limit 5;
+            """
+            params_similar = (desired_room, desired_bedtype, begin_date, end_date, total_ppl)
+            cursor.execute(similar_sql, params_similar)
+            similar_results = cursor.fetchall()
+            if len(similar_results) == 0:
+                print("Cannot make reservation.\n")
+                return
+            results_list = similar_results
+        
+        # 4. Display available rooms via pandas so the user can select one
+        columns = [desc[0] for desc in cursor.description]
+        df = pd.DataFrame(results_list, columns=columns)
+        print(df.to_string(index=True))
+        print()
+        choice = input("Enter the row number to book (or 'C' to cancel): ").strip()
+        if choice.lower() == 'c':
+            clear_screen()
+            print("Reservation cancelled.\n")
+            return
+        try:
+            choice_idx = int(choice)
+            if choice_idx < 0 or choice_idx >= len(results_list):
+                print("Invalid row number. Reservation cancelled.")
+                return
+        except ValueError:
+            print("Invalid input. Reservation cancelled.")
+            return
+        
+        chosen_room = results_list[choice_idx]
+        # Expecting: (RoomCode, RoomName, Beds, bedType, maxOcc, basePrice, decor)
+        room_code = chosen_room[0]
+        room_name = chosen_room[1]
+        base_rate = float(chosen_room[5])
+        
+        # 5. Compute the total cost (weekdays at base rate; weekends at 110% of base rate)
+        import datetime
+        def compute_total_cost(rate, start_str, end_str):
+            start = datetime.date.fromisoformat(start_str)
+            end = datetime.date.fromisoformat(end_str)
+            total = 0.0
+            day = start
+            while day < end:
+                if day.weekday() >= 5:  # Saturday (5) and Sunday (6)
+                    total += rate * 1.10
+                else:
+                    total += rate
+                day += datetime.timedelta(days=1)
+            return round(total, 2)
+        total_cost = compute_total_cost(base_rate, begin_date, end_date)
+        
+        # 6. Insert the new reservation using a WITH query to generate a new reservation code
+        insert_sql = f"""
+            With new_code as (
+                Select ifnull(max(CODE), 0) + 1 as newCode
+                From {reservations}
+            )
+            Insert into {reservations}
+                (CODE, Room, CheckIn, Checkout, Rate, LastName, FirstName, Adults, Kids)
+            Select new_code.newCode,
+                %s,
+                %s,
+                %s,
+                r.basePrice,
+                %s,
+                %s,
+                %s,
+                %s
+            From {rooms} r, new_code
+            Where r.RoomCode = %s;
+        """
+        params_insert = (room_code, begin_date, end_date,
+                         last_name, first_name, adults, kids,
+                         room_code)
+        cursor.execute(insert_sql, params_insert)
+        
+    except Exception as e:
+        print(f"Error with SQL Query: {e}")
+        return False
+
+    clear_screen()
+    print(">>> Reservation Confirmed <<<\n")
+    print(f"Name: {first_name} {last_name}")
+    print(f"Room: {room_code} - {room_name} (Bed Type: {chosen_room[3]})")
+    print(f"Dates: {begin_date} to {end_date}")
+    print(f"Adults: {adults}, Kids: {kids}")
+    print(f"Total Cost: ${total_cost}\n")
+    print("Reservation successfully inserted into the database.\n")
 
 
 def cancel_h(cursor, code) -> bool:
@@ -239,9 +405,9 @@ def main():
             fr1(cursor)
             display_panda(cursor)
         elif choice == "2": # Reservations
-            #fr2(cursor)
-            #display_panda(cursor)
-            print("Not implemented yet")
+            fr2(cursor)
+            display_panda(cursor)
+            # print("yes")
         elif choice == "3": # Reservation Cancellation
             if fr3(cursor):
                 print("Successfully cancelled the reservation.\n")
