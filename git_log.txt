@@ -1,0 +1,343 @@
+commit ea4671a0a63501317439624dfab1f84a3e82ef58
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Wed Mar 12 19:23:29 2025 -0700
+
+    Finally fixed FR2, modified README to include new member Kevin Lu
+
+ README.md | 4 ++--
+ main.py   | 9 +++------
+ 2 files changed, 5 insertions(+), 8 deletions(-)
+
+commit fe43783ecf6716940c23b20d0118661b20b625c7
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Wed Mar 12 18:33:21 2025 -0700
+
+    commented out conn commit
+
+ main.py | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+commit 9f8ca2d1659cf3514d05d812384c460b1091ec68
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Wed Mar 12 18:14:43 2025 -0700
+
+    fixed FR1 rounding issue with popularity, FR2 fixed code and SQL statement using CTE with insert, finalized output format
+
+ FR1.sql |   2 +-
+ FR2.sql |  10 ++--
+ main.py | 176 ++++++++++++++++++++++++++++++++++++++++------------------------
+ 3 files changed, 115 insertions(+), 73 deletions(-)
+
+commit b67cae8acf6971f8d737421c2256cf78038af7a5
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Wed Mar 12 16:13:05 2025 -0700
+
+    fixed most errors and formatted output of fr2
+
+ FR4.sql |  20 +++++++++++++
+ main.py | 105 ++++++++++++++++++++++++++++++++++++++--------------------------
+ 2 files changed, 83 insertions(+), 42 deletions(-)
+
+commit 373639bb28fd78677b966877030e54b10fe188b5
+Author: ssasukek <kevinlu3234@gmail.com>
+Date:   Wed Mar 12 00:11:50 2025 -0700
+
+    done?
+
+ main.py | 38 +++++++++++++++++++++-----------------
+ 1 file changed, 21 insertions(+), 17 deletions(-)
+
+commit 3651edd78dacb5157c054e5230c99f1fcc010363
+Author: ssasukek <kevinlu3234@gmail.com>
+Date:   Tue Mar 11 22:10:50 2025 -0700
+
+    testing
+
+ FR2.sql |  58 ++++++++++++++++++++++
+ main.py | 172 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 227 insertions(+), 3 deletions(-)
+
+commit c5f7a3d72dd2a79dfd88eff0094a20c82c08d0e2
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Tue Mar 11 14:10:04 2025 -0700
+
+    fixed FR1.sql
+
+ FR1.sql | 1 +
+ 1 file changed, 1 insertion(+)
+
+commit fc02b41319677b8622e821c391e6a1eb2d5641c5
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Tue Mar 11 13:38:05 2025 -0700
+
+    added important TOD (commit changes to DB)
+
+ main.py | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+commit c1da317a694ca1e428a42ea490a1e8c643f6a50d
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Tue Mar 11 01:04:15 2025 -0700
+
+    Reorganized code and formatted output. Also, added final implementation of fr4
+
+ main.py | 127 +++++++++++++++++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 89 insertions(+), 38 deletions(-)
+
+commit b5fd37f8018edac57520efe7db9e4653bfbbb16e
+Author: Curtis Bradley <curtisbradley822@gmail.com>
+Date:   Mon Mar 10 21:15:59 2025 -0700
+
+    FR5
+
+ FR5.sql | 70 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ main.py | 12 +++++++++--
+ 2 files changed, 80 insertions(+), 2 deletions(-)
+
+commit ae261a5cf527869e4363bc28dffbd8fb262be98e
+Merge: 5b37135 9691dcb
+Author: Curtis Bradley <curtisbradley822@gmail.com>
+Date:   Mon Mar 10 21:10:50 2025 -0700
+
+    Merge remote-tracking branch 'origin/main'
+    
+    # Conflicts:
+    #       main.py
+
+commit 9691dcbe096450fde1581dd315860f87941f1053
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Mon Mar 10 21:00:57 2025 -0700
+
+    random string floating around
+
+ main.py | 1 -
+ 1 file changed, 1 deletion(-)
+
+commit c66c5aa99ec5ac66b50c4fb840d4218465d385f4
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Mon Mar 10 20:57:21 2025 -0700
+
+    fixed FR3
+
+ main.py | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+commit 5b371355283346a9b672b4dd7df4bb7b953b8218
+Author: Curtis Bradley <curtisbradley822@gmail.com>
+Date:   Mon Mar 10 20:11:17 2025 -0700
+
+    FR1
+
+ main.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit 37d992351ddbb27dc2fac8b2dda1479025a399c1
+Author: Curtis Bradley <curtisbradley822@gmail.com>
+Date:   Mon Mar 10 20:07:27 2025 -0700
+
+    FR1
+
+ main.py | 24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
+
+commit ab47fada24ba146f7ff37cc86ae85db26b21187a
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Mon Mar 10 19:04:46 2025 -0700
+
+    fixed output format for display_pandas and added requirement 3
+
+ main.py | 90 +++++++++++++++++++++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 74 insertions(+), 16 deletions(-)
+
+commit 1e1b889ca0e9aa2db03d16ef8fbf03fbefb3e80a
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Sun Mar 9 22:30:30 2025 -0700
+
+    simplified main function
+
+ main.py | 30 +++++++++++++++++-------------
+ 1 file changed, 17 insertions(+), 13 deletions(-)
+
+commit 67eb8addef3965b36a5bf9474b3f566579155f8e
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Sun Mar 9 22:16:45 2025 -0700
+
+    added simple animations (invalid input and closing)
+
+ main.py | 34 +++++++++++++++++++++++-----------
+ 1 file changed, 23 insertions(+), 11 deletions(-)
+
+commit 21a36451a5ab5ba9a320a0f4590671de197b1e21
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Sun Mar 9 21:48:20 2025 -0700
+
+    added more documentation
+
+ main.py | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
+
+commit 7d8c49c8c48dc35ad2700360151525abf9016422
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Sun Mar 9 21:45:51 2025 -0700
+
+    changed closing sequence
+
+ main.py | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+commit 9be8dd3065dc337a68c56df0a2d09831d957c09e
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Sun Mar 9 21:44:35 2025 -0700
+
+    improved readability
+
+ main.py | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
+
+commit 373040f692a5e54d4a0c306b388d7af970502eab
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Sun Mar 9 21:34:00 2025 -0700
+
+    added replayability loop and console graphics
+
+ main.py | 49 +++++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 39 insertions(+), 10 deletions(-)
+
+commit 2ff5b7c9ea8b1d9172d15f0bf0d87a03e21a0bfe
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Sun Mar 9 21:05:14 2025 -0700
+
+    changed style of README.md
+
+ README.md | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+commit 1797b2910242f16b0472a2b0d1a787137fb7b45e
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Sun Mar 9 21:03:56 2025 -0700
+
+    changed style of README.md
+
+ README.md | 1 +
+ 1 file changed, 1 insertion(+)
+
+commit e7480b03bdd57cb437bd954a69c5298a27c3e615
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Sun Mar 9 21:03:35 2025 -0700
+
+    changed style of README.md
+
+ README.md | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+commit 5d478d3dd0cf9e0059fcbf537c0382197ba24193
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Sun Mar 9 21:02:33 2025 -0700
+
+    fixed README.md
+
+ README.md | 2 ++
+ 1 file changed, 2 insertions(+)
+
+commit 5bbd53e5490287bd079f751ef1b21cad026f7626
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Sun Mar 9 21:01:40 2025 -0700
+
+    added more documentation
+
+ README.md |  5 ++++-
+ main.py   | 11 +++++++++--
+ 2 files changed, 13 insertions(+), 3 deletions(-)
+
+commit a224be728c8dbbcba2ff29bb9e2aacf8b3b203d2
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Sun Mar 9 20:49:13 2025 -0700
+
+    added display with pandas
+
+ main.py | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
+
+commit df62d43b74a1a5a2dbe5f3f62c0d04a89c9e637c
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Sun Mar 9 17:22:18 2025 -0700
+
+    simplified main
+
+ main.py | 36 +++++++++++++++++++++---------------
+ 1 file changed, 21 insertions(+), 15 deletions(-)
+
+commit aaddb5b9bb928d13210bb34a217ea8abe5f55f9e
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Sun Mar 9 17:09:49 2025 -0700
+
+    added sample query to work from
+
+ main.py | 21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
+
+commit a96cf28bb2b8f760c6d09cd6f98dd69305ad1e80
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Sun Mar 9 16:28:27 2025 -0700
+
+    updated README.md
+
+ README.md | 5 +++--
+ main.py   | 2 ++
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+commit 984c85ebd34dab2282ffb924c8a0278016d21541
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Sun Mar 9 16:26:34 2025 -0700
+
+    added functionality to establish a connection with the working database
+
+ main.py | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
+
+commit 348710836bae87ccffd7d6aa9ff21d5d1b7e9197
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Sun Mar 9 15:16:15 2025 -0700
+
+    initial set up for both files
+
+ README.md |  2 +-
+ main.py   | 13 ++++++++++++-
+ 2 files changed, 13 insertions(+), 2 deletions(-)
+
+commit a9dfe75b5b1a1fdf3adc7badf3565c647c005ce0
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Sun Mar 9 14:51:23 2025 -0700
+
+    added main.py file and jolted down some ideas.
+
+ main.py | 3 +++
+ 1 file changed, 3 insertions(+)
+
+commit 58881693b4a9836583cccef500f69b0d5daa1090
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Sun Mar 9 14:43:26 2025 -0700
+
+    initial commit
+
+ README.md       |  7 +++++++
+ resetTables.sql | 33 +++++++++++++++++++++++++++++++++
+ 2 files changed, 40 insertions(+)
+
+commit 62a9b907ff167ad6f7f9dba6580b72da768e4736
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Sun Mar 9 14:41:33 2025 -0700
+
+    Added README.md file
+
+ README.md | 0
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+
+commit 6478c5ed3d92e2cb8e47d303d60c8e0eedd919d9
+Author: juanito-lenteja <juan@fmalpartida.com>
+Date:   Sun Mar 9 14:33:03 2025 -0700
+
+    added SQL file with statement to reset both tables to original state
+
+ resetTables.sql | 0
+ 1 file changed, 0 insertions(+), 0 deletions(-)
