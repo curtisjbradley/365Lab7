@@ -200,9 +200,7 @@ def fr2(cursor) -> bool:
                 Select r.RoomCode, r.RoomName, r.Beds, r.bedType, r.maxOcc, r.basePrice, r.decor
                 From {rooms} r
                 Join requested
-                Where (requested.desiredRoom = 'Any' or r.RoomCode = requested.desiredRoom)
-                and (requested.desiredBedType = 'Any' or r.bedType = requested.desiredBedType)
-                and r.maxOcc >= requested.totalGuests
+                Where r.maxOcc >= requested.totalGuests
                 and r.RoomCode not in (
                     Select Room
                     From {reservations}
@@ -219,8 +217,8 @@ def fr2(cursor) -> bool:
             if len(similar_results) == 0:
                 clear_screen()
                 print("Cannot make the reservation.\n")
-                clear_screen()
                 time.sleep(1)
+                clear_screen()
                 return False
             results_list = similar_results
             print("No exact matches found. Showing up to 5 similar suggestions:\n")
@@ -428,7 +426,7 @@ def fr5(cursor):
 
 # prints the exit animation and closes both the connection and the cursor
 def exit_seq(conn, cursor):
-    #conn.commit()
+    conn.commit()
     print("Closing session...")
     cursor.close()
     conn.close()
@@ -496,7 +494,6 @@ def main():
             clear_screen()
             print(f"Welcome {conn.user}!\n")
 
-    # TODO: commit changes made during runtime
     exit_seq(conn, cursor)
 
     return
