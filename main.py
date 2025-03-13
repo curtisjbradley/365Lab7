@@ -223,7 +223,7 @@ def fr2(cursor) -> bool:
                 time.sleep(1)
                 return False
             results_list = similar_results
-            print("No exact matches found. Showing up to 5 similar suggestions:\n\n")
+            print("No exact matches found. Showing up to 5 similar suggestions:\n")
 
         # set up DataFrame for next prints
         columns = [desc[0] for desc in cursor.description]
@@ -281,7 +281,7 @@ def fr2(cursor) -> bool:
                          last_name, first_name, adults, kids,
                          room_code)
         cursor.execute(insert_sql, params_insert)
-    except Exception:
+    except Exception as e:
         clear_screen()
         return False
 
@@ -336,7 +336,7 @@ def fr3(cursor) -> bool:
                     return False
                 else:
                     clear_screen()
-                    print("Invalid input")
+                    print("Invalid input!")
                     time.sleep(0.5)
                     clear_screen()
                     print("Attempting to cancel reservation:\n\n" + df.to_string(index=False) + "\n")
@@ -428,6 +428,7 @@ def fr5(cursor):
 
 # prints the exit animation and closes both the connection and the cursor
 def exit_seq(conn, cursor):
+    #conn.commit()
     print("Closing session...")
     cursor.close()
     conn.close()
@@ -490,7 +491,7 @@ def main():
             replay = False
         else:
             clear_screen()
-            print("Invalid input!\n")
+            print("Invalid input!")
             time.sleep(0.7)
             clear_screen()
             print(f"Welcome {conn.user}!\n")
