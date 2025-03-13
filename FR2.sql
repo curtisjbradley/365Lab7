@@ -39,13 +39,11 @@ Where r.maxOcc >= (select totalGuests from requested) and r.RoomCode not in (sel
 Order by r.basePrice asc
 Limit 5;
 
-With new_code as (
-    Select ifnull(max(CODE), 0) + 1 as newCode
-    From lab7_reservations
-)
+
 Insert into lab7_reservations
     (CODE, Room, CheckIn, Checkout, Rate, LastName, FirstName, Adults, Kids)
-Select new_code.newCode,
+Select (Select ifnull(max(CODE), 0) + 1 as newCode
+            From lab7_reservations),
        'chosenRoom',
        'beginDate',
        'endDate',
@@ -54,5 +52,5 @@ Select new_code.newCode,
        'userFirstName',
        adults,
        kids
-From lab7_rooms r, new_code
+From lab7_rooms r
 Where r.RoomCode = 'chosenRoom';
